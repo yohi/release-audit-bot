@@ -14,9 +14,15 @@ async function runAudit(env: Env): Promise<RunResult> {
   const sheets = createSheetsClient(env.SHEETS_API_URL);
   const repos = await sheets.listRepos();
   let changed = 0;
-  for (const repo of repos.filter((item) => item.enabled)) {
-    const didChange = await processRepo(repo, env, sheets.updateRepo);
-    changed += didChange ? 1 : 0;
+  for (const repo of repos) {
+    try {
+      const didChange = await processRepo(repo, env, sheets.updateRepo);
+      changed += didChange ? 1 : 0;
+    } catch (error) {
+      const now = new Date().toISOString();
+      const message = error instanceof Error ? error.message : String(error);
+      await sheets.updateRepo(statusUpdate(repo.rowId, "error", message, now, repo.lastReleaseTag, repo.lastReleaseTime));
+    }
   }
   return { checked: repos.length, changed };
 }
