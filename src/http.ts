@@ -6,7 +6,9 @@ export class HttpError extends Error {
     readonly status: number,
     readonly body: string,
   ) {
-    super(`HTTP ${status} from ${url}`);
+    const displayUrl = new URL(url);
+    displayUrl.search = "";
+    super(`HTTP ${status} from ${displayUrl.toString()}`);
   }
 }
 
