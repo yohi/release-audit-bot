@@ -9,6 +9,8 @@ export const RepoSchema = z.object({
   feedType: FeedTypeSchema,
   lastReleaseTag: z.string(),
   lastReleaseTime: z.string(),
+  processingTag: z.string(),
+  lockUntil: z.string(),
 });
 
 export const ReposResponseSchema = z.object({

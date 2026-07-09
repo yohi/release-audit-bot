@@ -30,7 +30,7 @@ function actionUrl(apiUrl: string, action: string): string {
   return url.toString();
 }
 
-export function statusUpdate(rowId: string, status: string, error: string, now: string, tag: string, time: string): UpdateRequest {
+export function statusUpdate(rowId: string, status: string, error: string, now: string, tag: string, time: string, processingTag: string = "", lockUntil: string = ""): UpdateRequest {
   return {
     rowId,
     lastReleaseTag: tag,
@@ -38,7 +38,7 @@ export function statusUpdate(rowId: string, status: string, error: string, now: 
     lastCheckedAt: now,
     lastStatus: status,
     lastError: error,
-    processingTag: "",
-    lockUntil: "",
+    processingTag,
+    lockUntil,
   };
 }

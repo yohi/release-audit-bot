@@ -41,6 +41,8 @@ function rowToRepo_(headers, row, rowNumber) {
     feedType: String(value_(headers, row, 'feed_type') || 'releases'),
     lastReleaseTag: String(value_(headers, row, 'last_release_tag') || ''),
     lastReleaseTime: String(value_(headers, row, 'last_release_time') || ''),
+    processingTag: String(value_(headers, row, 'processing_tag') || ''),
+    lockUntil: String(value_(headers, row, 'lock_until') || ''),
   };
 }
 

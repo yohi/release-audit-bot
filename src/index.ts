@@ -22,7 +22,7 @@ async function runAudit(env: Env): Promise<RunResult> {
       const now = new Date().toISOString();
       const message = error instanceof Error ? error.message : String(error);
       try {
-        await sheets.updateRepo(statusUpdate(repo.rowId, "error", message, now, repo.lastReleaseTag, repo.lastReleaseTime));
+        await sheets.updateRepo(statusUpdate(repo.rowId, "error", message, now, repo.lastReleaseTag, repo.lastReleaseTime, "", ""));
       } catch (updateError) {
         const updateMessage = updateError instanceof Error ? updateError.message : String(updateError);
         console.error(`Failed to persist error status for repo ${repo.rowId}: ${updateMessage}`);
@@ -48,22 +48,33 @@ async function processRepo(
     await updateRepo(statusUpdate(row.rowId, "unchanged", "", now, row.lastReleaseTag, row.lastReleaseTime));
     return false;
   }
-  if (row.lastReleaseTag.length === 0) {
-    await updateRepo(statusUpdate(row.rowId, "initialized", "", now, latest.tag, latest.publishedAt));
+  if (row.processingTag === latest.tag) {
+    await updateRepo(statusUpdate(row.rowId, "skipped_processing", "", now, row.lastReleaseTag, row.lastReleaseTime, row.processingTag, row.lockUntil));
     return false;
   }
-  const label = `${repo.owner}/${repo.name}`;
-  const compare = await fetchCompare(repo, row.lastReleaseTag, latest.tag, env.GITHUB_TOKEN);
-  const context = releaseContext(label, row.lastReleaseTag, latest.tag, compare);
-  const analysis = await analyzeRelease(env.GEMINI_API_KEY, env.GEMINI_MODEL, Number(env.MAX_PATCH_CHARS), context);
-  await notifyDiscord(env.DISCORD_WEBHOOK_URL, {
-    repo: label,
-    tag: latest.tag,
-    analysis,
-    compareUrl: compare.html_url,
-  });
-  await updateRepo(statusUpdate(row.rowId, "notified", "", now, latest.tag, latest.publishedAt));
-  return true;
+  if (row.lastReleaseTag.length === 0) {
+    await updateRepo(statusUpdate(row.rowId, "initialized", "", now, latest.tag, latest.publishedAt, "", ""));
+    return false;
+  }
+  await updateRepo(statusUpdate(row.rowId, "processing", "", now, row.lastReleaseTag, row.lastReleaseTime, latest.tag, ""));
+  try {
+    const label = `${repo.owner}/${repo.name}`;
+    const compare = await fetchCompare(repo, row.lastReleaseTag, latest.tag, env.GITHUB_TOKEN);
+    const context = releaseContext(label, row.lastReleaseTag, latest.tag, compare);
+    const analysis = await analyzeRelease(env.GEMINI_API_KEY, env.GEMINI_MODEL, Number(env.MAX_PATCH_CHARS), context);
+    await notifyDiscord(env.DISCORD_WEBHOOK_URL, {
+      repo: label,
+      tag: latest.tag,
+      analysis,
+      compareUrl: compare.html_url,
+    });
+    await updateRepo(statusUpdate(row.rowId, "notified", "", now, latest.tag, latest.publishedAt, "", ""));
+    return true;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    await updateRepo(statusUpdate(row.rowId, "error", message, now, row.lastReleaseTag, row.lastReleaseTime, "", ""));
+    throw error;
+  }
 }
 
 export default {
