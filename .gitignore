@@ -1,0 +1,18 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Wrangler / Cloudflare
+.wrangler/
+
+# Local tooling / plans
+.omo/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+
+# Build outputs
+dist/

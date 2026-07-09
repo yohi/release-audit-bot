@@ -1,0 +1,20 @@
+{
+  "name": "release-audit-bot",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "tsc --noEmit",
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev --test-scheduled",
+    "dry-run": "wrangler deploy --dry-run"
+  },
+  "dependencies": {
+    "zod": "^4.1.13"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260708.1",
+    "typescript": "^5.9.3",
+    "wrangler": "^4.51.0"
+  }
+}

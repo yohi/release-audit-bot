@@ -1,0 +1,16 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "release-audit-bot",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-07-09",
+  "triggers": {
+    "crons": ["0 */6 * * *"]
+  },
+  "observability": {
+    "enabled": true
+  },
+  "vars": {
+    "GEMINI_MODEL": "gemini-2.5-flash",
+    "MAX_PATCH_CHARS": "24000"
+  }
+}
