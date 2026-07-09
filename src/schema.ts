@@ -58,6 +58,7 @@ export const EnvSchema = z.object({
   GITHUB_TOKEN: z.string().min(1),
   GEMINI_MODEL: z.string().min(1),
   MAX_PATCH_CHARS: z.string().regex(/^\d+$/),
+  RUN_SECRET: z.string().min(1),
 });
 
 export type Repo = z.infer<typeof RepoSchema>;

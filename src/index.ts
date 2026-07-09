@@ -21,7 +21,12 @@ async function runAudit(env: Env): Promise<RunResult> {
     } catch (error) {
       const now = new Date().toISOString();
       const message = error instanceof Error ? error.message : String(error);
-      await sheets.updateRepo(statusUpdate(repo.rowId, "error", message, now, repo.lastReleaseTag, repo.lastReleaseTime));
+      try {
+        await sheets.updateRepo(statusUpdate(repo.rowId, "error", message, now, repo.lastReleaseTag, repo.lastReleaseTime));
+      } catch (updateError) {
+        const updateMessage = updateError instanceof Error ? updateError.message : String(updateError);
+        console.error(`Failed to persist error status for repo ${repo.rowId}: ${updateMessage}`);
+      }
     }
   }
   return { checked: repos.length, changed };
@@ -70,8 +75,14 @@ export default {
     if (url.pathname !== "/run") {
       return Response.json({ ok: true, usage: "GET /run to execute once" });
     }
+    const env = EnvSchema.parse(rawEnv);
+    const authHeader = request.headers.get("Authorization");
+    const expected = `Bearer ${env.RUN_SECRET}`;
+    if (authHeader !== expected) {
+      return Response.json({ ok: false, error: "Unauthorized" }, { status: 401 });
+    }
     try {
-      const result = await runAudit(EnvSchema.parse(rawEnv));
+      const result = await runAudit(env);
       return Response.json({ ok: true, result });
     } catch (error) {
       if (error instanceof Error) {
