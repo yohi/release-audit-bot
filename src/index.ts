@@ -48,7 +48,8 @@ async function processRepo(
     await updateRepo(statusUpdate(row.rowId, "unchanged", "", now, row.lastReleaseTag, row.lastReleaseTime));
     return false;
   }
-  if (row.processingTag === latest.tag) {
+  const isLocked = row.processingTag === latest.tag && row.lockUntil.length > 0 && new Date(row.lockUntil) > new Date(now);
+  if (isLocked) {
     await updateRepo(statusUpdate(row.rowId, "skipped_processing", "", now, row.lastReleaseTag, row.lastReleaseTime, row.processingTag, row.lockUntil));
     return false;
   }
@@ -56,7 +57,8 @@ async function processRepo(
     await updateRepo(statusUpdate(row.rowId, "initialized", "", now, latest.tag, latest.publishedAt, "", ""));
     return false;
   }
-  await updateRepo(statusUpdate(row.rowId, "processing", "", now, row.lastReleaseTag, row.lastReleaseTime, latest.tag, ""));
+  const lockUntil = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+  await updateRepo(statusUpdate(row.rowId, "processing", "", now, row.lastReleaseTag, row.lastReleaseTime, latest.tag, lockUntil));
   try {
     const label = `${repo.owner}/${repo.name}`;
     const compare = await fetchCompare(repo, row.lastReleaseTag, latest.tag, env.GITHUB_TOKEN);
