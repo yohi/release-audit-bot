@@ -75,7 +75,7 @@ async function processRepo(
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     await updateRepo(statusUpdate(row.rowId, "error", message, now, row.lastReleaseTag, row.lastReleaseTime, "", ""));
-    throw error;
+    return false;
   }
 }
 
