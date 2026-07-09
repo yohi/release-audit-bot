@@ -45,7 +45,7 @@ GEMINI_API_KEY
 GITHUB_TOKEN
 ```
 
-`SHEETS_API_URL` には Apps Script の `secret` クエリを含めます。`GITHUB_TOKEN` は public repo だけでも設定推奨です。
+`SHEETS_API_URL` には Apps Script の `secret` クエリを含めます。`GITHUB_TOKEN` は必須です（public repo でも GitHub API のレート制限緩和に必要です）。
 
 ## 実行
 
