@@ -43,6 +43,7 @@ SHEETS_API_URL
 DISCORD_WEBHOOK_URL
 GEMINI_API_KEY
 GITHUB_TOKEN
+RUN_SECRET
 ```
 
 `SHEETS_API_URL` には Apps Script の `secret` クエリを含めます。`GITHUB_TOKEN` は必須です（public repo でも GitHub API のレート制限緩和に必要です）。
@@ -62,4 +63,10 @@ pnpm deploy
 pnpm dev
 ```
 
-起動後、`/run` にアクセスするとCron相当の処理を1回実行します。
+起動後、`/run` にアクセスすると Cron 相当の処理を 1 回実行します。
+
+手動実行時は `Authorization: Bearer <RUN_SECRET>` ヘッダーが必要です。例:
+
+```bash
+curl -H "Authorization: Bearer $RUN_SECRET" "https://<worker-host>/run"
+```
