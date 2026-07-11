@@ -7,13 +7,15 @@
     "check": "tsc --noEmit",
     "deploy": "wrangler deploy",
     "dev": "wrangler dev --test-scheduled",
-    "dry-run": "wrangler deploy --dry-run"
+    "dry-run": "wrangler deploy --dry-run",
+    "setup": "node scripts/setup.js"
   },
   "dependencies": {
     "zod": "^4.1.13"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20260708.1",
+    "@google/clasp": "^3.3.0",
     "typescript": "^5.9.3",
     "wrangler": "^4.51.0"
   }

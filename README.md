@@ -24,29 +24,55 @@ repo_url,enabled,feed_type,last_release_tag,last_release_time,last_checked_at,la
 
 `feed_type` は `releases` または `tags` です。初回実行時は `last_release_tag` が空の場合、最新タグを記録するだけで通知しません。
 
-## Apps Script
+## 環境構築とデプロイ (自動化スクリプト)
 
-`apps-script/Code.gs` をスプレッドシートに紐づく Apps Script に貼り付け、スクリプトプロパティに `RELEASE_AUDIT_SECRET` を設定してください。
+本プロジェクトには、Google Apps Script (GAS) のデプロイ、URL自動検出、および Cloudflare Workers Secrets の登録を一括で行う自動化セットアップスクリプトが用意されています。
 
-Web App としてデプロイし、Cloudflare Worker の `SHEETS_API_URL` には次の形で設定します。
+### 1. 事前準備
+1. [Google Apps Script ユーザー設定](https://script.google.com/home/usersettings) にアクセスし、**「Google Apps Script API」** を **「オン」** にします。
+2. スプレッドシート（シート名: `repos`）を用意し、ヘッダー行を記述しておきます。
+3. スプレッドシートの「拡張機能」>「Apps Script」を開き、設定（歯車マーク）から **Script ID** をコピーします。
 
-```text
-https://script.google.com/macros/s/.../exec?secret=YOUR_SECRET
+### 2. セットアップスクリプトの実行
+プロジェクトルートで以下を実行します。
+
+```bash
+pnpm run setup
 ```
 
-## Cloudflare Worker secrets
+対話プロンプトに従って **Script ID** や API キー、Discord Webhook などの設定値を入力すると、以下の処理が自動で行われます：
+* Google アカウントへのログイン (`clasp login`)
+* GAS コードのプッシュとウェブアプリとしてのデプロイ (`clasp push`, `clasp deploy`)
+* 生成された Web App URL に安全な認証キー（記号なし）を結合した `SHEETS_API_URL` の自動組み立て
+* `.env` および `.dev.vars` (ローカル開発用) の生成と `.gitignore` への自動登録
+* Cloudflare Workers 本番環境へのシークレットの一括自動デプロイ
 
-以下を `wrangler secret put` で設定してください。
+一度設定した値は `.env` に保存されるため、2回目以降の実行時は Enter を押すだけで値を維持できます。
 
-```text
-SHEETS_API_URL
-DISCORD_WEBHOOK_URL
-GEMINI_API_KEY
-GITHUB_TOKEN
-RUN_SECRET
+### 3. Workers のデプロイ
+シークレットが登録されたら、Worker 本体をデプロイします。
+
+```bash
+pnpm run deploy
 ```
 
-`SHEETS_API_URL` には Apps Script の `secret` クエリを含めます。`GITHUB_TOKEN` は必須です（public repo でも GitHub API のレート制限緩和に必要です）。
+---
+
+## 構成と環境変数
+
+`wrangler.jsonc` では、Gemini API 無料枠で最もクォータ制限の緩いモデルとして **`gemini-3.1-flash-lite`** (RPM: 15, RPD: 500) をデフォルト指定しています。
+
+### Cloudflare Worker secrets (pnpm run setup で一括設定可能)
+
+以下を登録する必要があります。
+
+```text
+SHEETS_API_URL        - ?secret=KEY を含んだ GAS の Web App URL
+DISCORD_WEBHOOK_URL   - 通知先の Discord Webhook URL
+GEMINI_API_KEY        - Google AI Studio で発行した Gemini API キー
+GITHUB_TOKEN          - GitHub の Personal Access Token (レート制限回避用)
+RUN_SECRET            - 手動実行エンドポイント (/run) 用の任意のパスワードキー
+```
 
 ## 実行
 

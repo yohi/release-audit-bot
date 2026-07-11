@@ -16,3 +16,12 @@ node_modules/
 
 # Build outputs
 dist/
+
+# Secrets
+.env
+
+# Secrets
+.dev.vars
+
+# Secrets & Config
+.clasp.json
