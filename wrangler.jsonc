@@ -10,7 +10,7 @@
     "enabled": true
   },
   "vars": {
-    "GEMINI_MODEL": "gemini-2.5-flash",
+    "GEMINI_MODEL": "gemini-3.1-flash-lite",
     "MAX_PATCH_CHARS": "24000"
   }
 }
