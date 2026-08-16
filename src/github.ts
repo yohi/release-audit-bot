@@ -34,11 +34,36 @@ export async function fetchLatestFeedEntry(repo: GitHubRepo, feedType: FeedType)
   const title = extractXml(entry, "title");
   const updated = extractXml(entry, "updated");
   const link = entry.match(/<link[^>]+href="([^"]+)"/)?.[1] ?? feedUrl;
-  if (title === undefined || updated === undefined) {
+  const tag = extractTagFromEntry(entry, link, title);
+  if (tag === undefined || updated === undefined) {
     return undefined;
   }
-  return { tag: normalizeTagTitle(title), publishedAt: updated, url: decodeXml(link) };
+  return { tag, publishedAt: updated, url: decodeXml(link) };
 }
+
+export function extractTagFromEntry(entry: string, linkHref?: string, title?: string): string | undefined {
+  // 1. Extract from link href containing /releases/tag/<tag> or /tree/<tag>
+  if (linkHref !== undefined) {
+    const linkMatch = linkHref.match(/\/(?:releases\/tag|tree)\/([^/?#]+)/);
+    if (linkMatch?.[1]) {
+      return decodeURIComponent(decodeXml(linkMatch[1]));
+    }
+  }
+
+  // 2. Extract from id: tag:github.com,2008:Repository/<repo_id>/<tag>
+  const idMatch = entry.match(/<id>tag:github\.com,2008:Repository\/\d+\/(.+)<\/id>/);
+  if (idMatch?.[1]) {
+    return decodeURIComponent(decodeXml(idMatch[1].trim()));
+  }
+
+  // 3. Fallback to title
+  if (title !== undefined && title.length > 0) {
+    return normalizeTagTitle(title);
+  }
+
+  return undefined;
+}
+
 
 export async function fetchCompare(
   repo: GitHubRepo,
